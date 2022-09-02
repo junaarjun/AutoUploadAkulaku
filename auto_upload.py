@@ -4,6 +4,7 @@ from time import sleep, strftime
 import autoit
 import pandas as pd
 import shutil
+import numpy as np
 
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
@@ -14,7 +15,7 @@ from selenium.webdriver.support import expected_conditions as EC
 
 def openBrowser():
     global driver
-    driver = webdriver.Chrome()
+    driver = webdriver.Chrome(executable_path='chromedriver.exe')
     driver.maximize_window()
     driver.get('https://ec-vendor.akulaku.com/ec-vendor/user/login')
 
@@ -432,79 +433,80 @@ def main():
     print(f"[{strftime('%d-%m-%y %X')}] -> Login")
 
     for index in range(len(data)):
-        produk = f'{index + 1}/{len(data)}'
-        row = data.iloc[index]
-        judul_produk = row[cols[0]]
-        kategori1 = row[cols[1]]
-        kategori2 = row[cols[2]]
-        merek_produk = row[cols[3]]
-        spesifikasi1 = row[cols[4]]
-        opsi_spek1 = row[cols[5]]
-        spesifikasi2 = row[cols[6]]
-        opsi_spek2 = row[cols[7]]
-        hrg = row[cols[8:18]]
-        st = row[cols[18:28]]
-        sk = row[cols[28:38]]
-        gambar1 = row[cols[38]]
-        gambar2 = row[cols[39]]
-        gambar3 = row[cols[40]]
-        gambar4 = row[cols[41]]
-        gambar5 = row[cols[42]]
-        gambar6 = row[cols[43]]
-        gambar7 = row[cols[44]]
-        gambar8 = row[cols[45]]
-        deskripsi = row[cols[46]]
-        info = row[cols[47:]]
-        if type(opsi_spek1) != float:
-            spek1 = str(opsi_spek1).replace(" ", "")
-            spek1 = spek1.split('|')
-        else:
-            spek1 = []
-        if type(opsi_spek2) != float:
-            spek2 = str(opsi_spek2).replace(" ", "")
-            spek2 = spek2.split('|')
-        else:
-            spek2 = []
+            produk = f'{index + 1}/{len(data)}'
+            row = data.iloc[index]
+            judul_produk = row[cols[0]]
+            kategori1 = row[cols[1]]
+            kategori2 = row[cols[2]]
+            merek_produk = row[cols[3]]
+            spesifikasi1 = row[cols[4]]
+            opsi_spek1 = row[cols[5]]
+            spesifikasi2 = row[cols[6]]
+            opsi_spek2 = row[cols[7]]
+            hrg = row[cols[8:18]]
+            st = row[cols[18:28]]
+            sk = row[cols[28:38]]
+            gambar1 = row[cols[38]]
+            gambar2 = row[cols[39]]
+            gambar3 = row[cols[40]]
+            gambar4 = row[cols[41]]
+            gambar5 = row[cols[42]]
+            gambar6 = row[cols[43]]
+            gambar7 = row[cols[44]]
+            gambar8 = row[cols[45]]
+            deskripsi = row[cols[46]]
+            info = row[cols[47:]]
+            if type(opsi_spek1) == str:
+                spek1 = str(opsi_spek1).replace(" ", "")
+                spek1 = spek1.split('|')
+            elif type(opsi_spek1) != np.float64 or type(opsi_spek1) != float:
+                spek1 = []
+            if type(opsi_spek2) == str:
+                spek2 = str(opsi_spek2).replace(" ", "")
+                spek2 = spek2.split('|')
+            elif type(opsi_spek2) != np.float64 or type(opsi_spek2) != float:
+                spek2 = []
 
-        harga = []
-        sku = []
-        stok = []
-        if len(spek1) == 0:
-            harga = [[str(hrg[0])]]
-            sku = [[str(sk[0])]]
-            stok = [[str(st[0])]]
-        else:
-            for a in range(len(spek1)):
-                if type(str(hrg[a])) == str:
-                    hrg1 = str(hrg[a]).split('|')
-                    harga.append(hrg1)
-                if type(sk[a]) == str:
-                    sk1 = sk[a].split('|')
-                    sku.append(sk1)
-                if type(str(st[a])) == str:
-                    st1 = str(st[a]).split('|')
-                    stok.append(st1)
 
-        list_gbr = []
-        for i in range(8):
-            if type(globals()[f'gambar{i + 1}']) == str:
-                path = downloadGambar(globals()[f'gambar{i + 1}'], f'Gambar-{i + 1}', f'Produk-{index + 1}')
-                list_gbr.append(path)
+            harga = []
+            sku = []
+            stok = []
+            if len(spek1) == 0:
+                harga = [[str(hrg[0])]]
+                sku = [[str(sk[0])]]
+                stok = [[str(st[0])]]
             else:
-                pass
+                for a in range(len(spek1)):
+                    if type(str(hrg[a])) == str:
+                        hrg1 = str(hrg[a]).split('|')
+                        harga.append(hrg1)
+                    if type(sk[a]) == str:
+                        sk1 = sk[a].split('|')
+                        sku.append(sk1)
+                    if type(str(st[a])) == str:
+                        st1 = str(st[a]).split('|')
+                        stok.append(st1)
 
-        info_pengiriman = {
-            'berat': info[0],
-            'panjang': info[1],
-            'lebar': info[2],
-            'tinggi': info[3]
-        }
+            list_gbr = []
+            for i in range(8):
+                if type(globals()[f'gambar{i + 1}']) == str:
+                    path = downloadGambar(globals()[f'gambar{i + 1}'], f'Gambar-{i + 1}', f'Produk-{index + 1}')
+                    list_gbr.append(path)
+                else:
+                    pass
 
-        print(f"[{strftime('%d-%m-%y %X')}] -> Mulai Upload produk {index + 1}/{len(data)}")
-        uploadProduk(produk)
-        print(f"[{strftime('%d-%m-%y %X')}] -> Produk {index + 1}/{len(data)} Berhasil "
-              f"Terpublish\n###############################################\n")
-        nextProduk()
+            info_pengiriman = {
+                'berat': info[0],
+                'panjang': info[1],
+                'lebar': info[2],
+                'tinggi': info[3]
+            }
+
+            print(f"[{strftime('%d-%m-%y %X')}] -> Mulai Upload produk {index + 1}/{len(data)}")
+            uploadProduk(produk)
+            print(f"[{strftime('%d-%m-%y %X')}] -> Produk {index + 1}/{len(data)} Berhasil "
+                  f"Terpublish\n###############################################\n")
+            nextProduk()
 
 
 if __name__ == '__main__':
